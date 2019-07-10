@@ -69,6 +69,20 @@
 /// we don't want asserts to pop a dialog on windows.
 int WindowsCrtReportHook(int reportType, char* message, int* returnValue)
 {
+    // chia 看不懂
+    /*
+    <QtGlobal>::Q_UNUSED(name) 官方說明
+    Indicates to the compiler that the 
+    parameter with the specified name is not 
+    used in the body of a function. This can 
+    be used to suppress compiler warnings 
+    while allowing functions to be defined 
+    with meaningful parameter names in their 
+    signatures.
+    向編譯器指示具有指定名稱的參數未在函數體中使用。 
+    這可用於抑制編譯器警告，同時允許在其簽名中使用
+    有意義的參數名稱定義函數。
+     */
     Q_UNUSED(reportType);
 
     std::cerr << message << std::endl;  // Output message to stderr
@@ -134,7 +148,8 @@ int main(int argc, char *argv[])
     if (!qEnvironmentVariableIsSet("QT_LOGGING_TO_CONSOLE"))
         qputenv("QT_LOGGING_TO_CONSOLE", "1");
 #endif
-
+    
+    //ph:可能是qt的信息槽機制初始化?
     // install the message handler
     AppMessages::installHandler();
 
@@ -148,11 +163,19 @@ int main(int argc, char *argv[])
 
 #ifdef Q_OS_WIN
     // Set our own OpenGL buglist
+    // chia 
+    // qputenv(name, value)    設定參數的值
+    // if name is not found , return 0
     qputenv("QT_OPENGL_BUGLIST", ":/opengl/resources/opengl/buglist.json");
 
     // Allow for command line override of renderer
     for (int i = 0; i < argc; i++) {
         const QString arg(argv[i]);
+        // chia
+        // QStringLiteral 創立一個string物件，這個請自行參考官網說明
+        // 有點算是物件成本問題、考量。(QStringLiteral和Qstring不同)
+        // https://doc.qt.io/qt-5/qstring.html#QStringLiteral
+        //ph:這兩個參數會影響QGC的繪圖方式
         if (arg == QStringLiteral("-angle")) {
             QCoreApplication::setAttribute(Qt::AA_UseOpenGLES);
             break;
@@ -242,6 +265,7 @@ int main(int argc, char *argv[])
     // on in the code.
     qRegisterMetaType<QList<QPair<QByteArray,QByteArray> > >();
 
+    //PH:看起來是主要app的初始化  後續接著 地圖引擎初始化
     app->_initCommon();
     //-- Initialize Cache System
     getQGCMapEngine()->init();
